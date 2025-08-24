@@ -75,14 +75,17 @@ const ChatPage = () => {
         
 
         //
-        const channelId = [authUser._id, targetUserId].sort().join("-");
+        // Ensure both IDs are strings to avoid [object Object] in channel ID
+        const userId1 = authUser._id.toString();
+        const userId2 = targetUserId.toString();
+        const channelId = [userId1, userId2].sort().join("-");
 
         // you and me
         // if i start the chat => channelId: [myId, yourId]
         // if you start the chat => channelId: [yourId, myId]  => [myId,yourId]
 
         const currChannel = client.channel("messaging", channelId, {
-          members: [authUser._id, targetUserId],
+          members: [userId1, userId2],
         });
 
         await currChannel.watch();

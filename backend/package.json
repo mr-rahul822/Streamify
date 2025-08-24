@@ -4,7 +4,8 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "fix-urls": "node src/scripts/fixImageUrls.js"
   },
   "keywords": [],
   "author": "",

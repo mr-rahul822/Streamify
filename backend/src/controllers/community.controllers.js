@@ -13,16 +13,19 @@ export const createCommunity = async (req, res) => {
     // agar file aayi hai multer se
     let coverImageUrl = null;
     if (req.file) {
+      // Use relative path for production compatibility
       coverImageUrl = `/uploads/${req.file.filename}`;
     }
 
     // create Stream channel
     const streamChannelId = `community-${Date.now()}`;
+    console.log("Creating Stream channel with ID:", streamChannelId);
     const channel = serverClient.channel("team", streamChannelId, {
       name,
       created_by: { id: req.user._id.toString() },
     });
     await channel.create();
+    console.log("Stream channel created successfully");
 
     // save in DB
     const community = await Community.create({
@@ -131,6 +134,8 @@ export const getAllCommunities = async (req, res) => {
     // Debug: Log the first community to see the structure
     if (communities.length > 0) {
       console.log("Sample community structure:", JSON.stringify(communities[0], null, 2));
+      console.log("Stream Channel ID:", communities[0].streamChannelId);
+      console.log("Stream Channel ID type:", typeof communities[0].streamChannelId);
     }
     
     try {
