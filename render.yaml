@@ -1,7 +1,7 @@
 services:
   # Backend API service (serves both backend and frontend)
   - type: web
-    name: streamify-backend
+    name: streamify
     env: node
     plan: free
     buildCommand: npm run build
