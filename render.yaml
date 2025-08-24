@@ -10,6 +10,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: VITE_STREAM_API_KEY
+        value: "your_stream_api_key_here"
       # Add your MongoDB connection string and other environment variables here
       # - key: MONGODB_URI
       #   value: your_mongodb_connection_string
