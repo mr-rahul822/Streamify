@@ -30,7 +30,7 @@ app.use("/api/chat",chatRoute)
 app.use("/api/communities", communityRoutes);
 
 if (process.env.NODE_ENV === "production") {
-  const frontendPath = path.join(process.cwd(), "frontend/dist");
+  const frontendPath = path.join(process.cwd(), "../frontend/dist");
   const indexPath = path.join(frontendPath, "index.html");
 
   console.log("Serving frontend from:", frontendPath);
