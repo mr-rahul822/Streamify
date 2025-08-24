@@ -30,16 +30,16 @@ app.use("/api/chat",chatRoute)
 app.use("/api/communities", communityRoutes);
 
 if (process.env.NODE_ENV === "production") {
-  const frontendPath = path.join(__dirname, "../../..", "Frontend", "dist");
-console.log("Serving frontend from:", frontendPath);
+  const frontendPath = path.join(__dirname, "../../Frontend/dist"); // Capital F
 
-app.use(express.static(frontendPath));
+  console.log("Serving frontend from:", frontendPath);
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
-});
+  app.use(express.static(frontendPath));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(frontendPath, "index.html"));
+  });
 }
-
 app.listen(PORT, () => {
   console.log(`server is running on port ${PORT}`);
   ConnectDB();
