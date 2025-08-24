@@ -5,7 +5,7 @@ services:
     env: node
     plan: free
     buildCommand: npm run build
-    startCommand: npm run start --prefix src/Backend
+    startCommand: npm run start --prefix src/backend
     rootDir: .
     envVars:
       - key: NODE_ENV

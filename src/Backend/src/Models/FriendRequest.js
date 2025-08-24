@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import User from "../Models/User.js";
+import User from "./User.js";
 
 const friendRequestSchema = new mongoose.Schema({
     sender : {
