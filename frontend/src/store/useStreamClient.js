@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { StreamChat } from "stream-chat";
 import { getStreamToken } from "../lib/api";
 
-const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
+const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY || "placeholder_key_for_build";
 
 // 🔑 singleton client (global instance, avoid re-init)
 let streamClient = null;
@@ -29,7 +29,11 @@ export const useStreamClient = create((set, get) => ({
 
     try {
       set({ loading: true, error: null });
-      if (!STREAM_API_KEY) throw new Error("VITE_STREAM_API_KEY missing");
+      if (!STREAM_API_KEY || STREAM_API_KEY === "placeholder_key_for_build") {
+        console.warn("VITE_STREAM_API_KEY missing or placeholder - skipping stream initialization");
+        set({ loading: false });
+        return null;
+      }
 
       const { token } = await getStreamToken();
       console.log("[stream] got token");

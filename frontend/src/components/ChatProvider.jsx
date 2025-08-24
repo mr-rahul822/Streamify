@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import useAuthUser from "../hooks/useAuthUser";
 import { getStreamToken } from "../lib/api";
 
-const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
+const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY || "placeholder_key_for_build";
 
 export const ChatContext = React.createContext(null);
 
