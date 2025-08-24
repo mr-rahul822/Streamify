@@ -21,7 +21,7 @@
     "mongoose": "^8.13.2",
     "multer": "^2.0.2",
     "stream-chat": "^8.60.0",
-    "streamify": "file:..",
+
     "validator": "^13.15.15"
   },
   "devDependencies": {

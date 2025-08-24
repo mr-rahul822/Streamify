@@ -1,0 +1,29 @@
+services:
+  # Backend API service
+  - type: web
+    name: streamify-backend
+    env: node
+    plan: free
+    buildCommand: npm install --prefix src/Backend
+    startCommand: npm run start --prefix src/Backend
+    rootDir: .
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Add your MongoDB connection string and other environment variables here
+      # - key: MONGODB_URI
+      #   value: your_mongodb_connection_string
+      # - key: JWT_SECRET
+      #   value: your_jwt_secret
+
+  # Frontend service
+  - type: web
+    name: streamify-frontend
+    env: static
+    plan: free
+    buildCommand: npm install --prefix src/Frontend && npm run build --prefix src/Frontend
+    staticPublishPath: src/Frontend/dist
+    rootDir: .
+    envVars:
+      - key: VITE_API_URL
+        value: https://streamify-backend.onrender.com
