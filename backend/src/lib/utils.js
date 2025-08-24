@@ -63,3 +63,9 @@ export const convertImageUrls = (data) => {
     return data; // Return original data if conversion fails
   }
 };
+
+// Helper function to convert image URLs in a more targeted way
+export const convertImageUrl = (url) => {
+  if (!url || typeof url !== 'string') return url;
+  return url.replace('http://localhost:5001', '').replace('https://localhost:5001', '');
+};

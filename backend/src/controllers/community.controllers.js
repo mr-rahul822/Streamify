@@ -1,7 +1,7 @@
 import Community from "../Models/Community.js";
 import User from "../Models/User.js";
 import { StreamChat } from "stream-chat";
-import { convertImageUrls } from "../lib/utils.js";
+import { convertImageUrls, convertImageUrl } from "../lib/utils.js";
 
 
 const serverClient = StreamChat.getInstance(process.env.STREAM_API_KEY, process.env.STREAM_API_SECRET);
@@ -128,10 +128,31 @@ export const getAllCommunities = async (req, res) => {
     const communities = await Community.find().populate("ownerId", "fullName profilePic");
     console.log("Found communities:", communities.length);
     
+    // Debug: Log the first community to see the structure
+    if (communities.length > 0) {
+      console.log("Sample community structure:", JSON.stringify(communities[0], null, 2));
+    }
+    
     try {
-      const convertedCommunities = convertImageUrls(communities);
+      // Convert to plain objects first
+      const plainCommunities = communities.map(community => {
+        const plain = community.toObject ? community.toObject() : community;
+        
+        // Convert specific image URLs
+        if (plain.coverImage) {
+          plain.coverImage = convertImageUrl(plain.coverImage);
+        }
+        
+        // Convert populated owner's profile pic
+        if (plain.ownerId && plain.ownerId.profilePic) {
+          plain.ownerId.profilePic = convertImageUrl(plain.ownerId.profilePic);
+        }
+        
+        return plain;
+      });
+      
       console.log("Converted communities successfully");
-      res.json(convertedCommunities);
+      res.json(plainCommunities);
     } catch (conversionError) {
       console.error("Error converting image URLs:", conversionError);
       // Fallback: return communities without conversion
@@ -154,7 +175,30 @@ export const getCommunityById = async (req, res) => {
 
     if (!community) return res.status(404).json({ message: "Community not found" });
 
-    res.json(convertImageUrls(community));
+    // Convert to plain object and handle image URLs
+    const plainCommunity = community.toObject ? community.toObject() : community;
+    
+    // Convert specific image URLs
+    if (plainCommunity.coverImage) {
+      plainCommunity.coverImage = convertImageUrl(plainCommunity.coverImage);
+    }
+    
+    // Convert populated owner's profile pic
+    if (plainCommunity.ownerId && plainCommunity.ownerId.profilePic) {
+      plainCommunity.ownerId.profilePic = convertImageUrl(plainCommunity.ownerId.profilePic);
+    }
+    
+    // Convert populated members' profile pics
+    if (plainCommunity.members && Array.isArray(plainCommunity.members)) {
+      plainCommunity.members = plainCommunity.members.map(member => {
+        if (member.profilePic) {
+          member.profilePic = convertImageUrl(member.profilePic);
+        }
+        return member;
+      });
+    }
+
+    res.json(plainCommunity);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
