@@ -1,5 +1,6 @@
 import User from "../Models/User.js"
 import FriendRequest from "../Models/FriendRequest.js";
+import { convertImageUrls } from "../lib/utils.js";
 
 
 export async function getRecommendedUsers(req,res){
@@ -20,7 +21,7 @@ export async function getRecommendedUsers(req,res){
     isOnboarded: true
 }).select("fullName profilePic nativeLanguage learningLanguage bio location");
 
-            res.status(200).json(recommendedUser);
+            res.status(200).json(convertImageUrls(recommendedUser));
         } catch (error) {
             console.error("Error in getRecommendedUsers controller", error.message);
             res.status(500).json({ message: "Internal Server Error" });
@@ -34,7 +35,7 @@ export async function getMyFriends(req,res){
     .select("friends")
     .populate("friends", "fullName profilePic nativeLanguage learningLanguage bio");
 
-    res.status(200).json(user.friends)
+    res.status(200).json(convertImageUrls(user.friends))
         
     } catch (error) {
        console.error("Error in getMyFriends controller", error.message);
@@ -181,7 +182,7 @@ export async function getFriendRequests(req,res) {
                 return res.status(404).json({ message: "User not found" });
             }
 
-            res.status(200).json(user);
+            res.status(200).json(convertImageUrls(user));
         } catch (error) {
             console.error("Error in getProfile controller", error.message);
             res.status(500).json({ message: "Internal Server Error" });
@@ -215,7 +216,7 @@ export async function getFriendRequests(req,res) {
                 return res.status(404).json({ message: "User not found" });
             }
 
-            res.status(200).json(updatedUser);
+            res.status(200).json(convertImageUrls(updatedUser));
         } catch (error) {
             console.error("Error in updateProfile controller", error.message);
             res.status(500).json({ message: "Internal Server Error" });

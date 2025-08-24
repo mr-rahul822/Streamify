@@ -1,6 +1,7 @@
 import Community from "../Models/Community.js";
 import User from "../Models/User.js";
 import { StreamChat } from "stream-chat";
+import { convertImageUrls } from "../lib/utils.js";
 
 
 const serverClient = StreamChat.getInstance(process.env.STREAM_API_KEY, process.env.STREAM_API_SECRET);
@@ -41,7 +42,7 @@ export const createCommunity = async (req, res) => {
       $push: { joinedCommunities: community._id },
     });
 
-    res.status(201).json(community);
+    res.status(201).json(convertImageUrls(community));
   } catch (error) {
     console.error("Error creating community:", error);
     res.status(500).json({ message: error.message });
@@ -68,7 +69,7 @@ export const joinCommunity = async (req, res) => {
       await channel.addMembers([req.user._id.toString()]);
     }
 
-    res.json({ message: "Joined community", community });
+    res.json({ message: "Joined community", community: convertImageUrls(community) });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -125,7 +126,7 @@ export const leaveCommunity = async (req, res) => {
 export const getAllCommunities = async (req, res) => {
   try {
     const communities = await Community.find().populate("ownerId", "fullName profilePic");
-    res.json(communities);
+    res.json(convertImageUrls(communities));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -142,7 +143,7 @@ export const getCommunityById = async (req, res) => {
 
     if (!community) return res.status(404).json({ message: "Community not found" });
 
-    res.json(community);
+    res.json(convertImageUrls(community));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
