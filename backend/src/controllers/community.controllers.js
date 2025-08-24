@@ -126,8 +126,19 @@ export const leaveCommunity = async (req, res) => {
 export const getAllCommunities = async (req, res) => {
   try {
     const communities = await Community.find().populate("ownerId", "fullName profilePic");
-    res.json(convertImageUrls(communities));
+    console.log("Found communities:", communities.length);
+    
+    try {
+      const convertedCommunities = convertImageUrls(communities);
+      console.log("Converted communities successfully");
+      res.json(convertedCommunities);
+    } catch (conversionError) {
+      console.error("Error converting image URLs:", conversionError);
+      // Fallback: return communities without conversion
+      res.json(communities);
+    }
   } catch (error) {
+    console.error("Error in getAllCommunities:", error);
     res.status(500).json({ message: error.message });
   }
 };
