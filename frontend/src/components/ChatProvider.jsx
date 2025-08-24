@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StreamChat } from "stream-chat";
 import { useQuery } from "@tanstack/react-query";
 import useAuthUser from "../hooks/useAuthUser";
@@ -19,7 +19,7 @@ const ChatProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    if (!authUser || !tokenData?.token) return;
+    if (!authUser || !tokenData?.token || STREAM_API_KEY === "placeholder_key_for_build") return;
 
     const client = StreamChat.getInstance(STREAM_API_KEY);
 

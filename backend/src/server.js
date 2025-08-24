@@ -31,13 +31,34 @@ app.use("/api/communities", communityRoutes);
 
 if (process.env.NODE_ENV === "production") {
   const frontendPath = path.join(__dirname, "../../frontend/dist");
+  const indexPath = path.join(frontendPath, "index.html");
 
   console.log("Serving frontend from:", frontendPath);
+  console.log("Index file path:", indexPath);
+  console.log("Current directory:", process.cwd());
+  console.log("__dirname:", __dirname);
+
+  // Check if the directory exists
+  import('fs').then(fs => {
+    try {
+      const stats = fs.statSync(frontendPath);
+      console.log("Frontend dist directory exists:", stats.isDirectory());
+    } catch (err) {
+      console.error("Frontend dist directory does not exist:", err.message);
+    }
+
+    try {
+      const stats = fs.statSync(indexPath);
+      console.log("Index.html exists:", stats.isFile());
+    } catch (err) {
+      console.error("Index.html does not exist:", err.message);
+    }
+  });
 
   app.use(express.static(frontendPath));
 
   app.get("*", (req, res) => {
-    res.sendFile(path.join(frontendPath, "index.html"));
+    res.sendFile(indexPath);
   });
 }
 app.listen(PORT, () => {
