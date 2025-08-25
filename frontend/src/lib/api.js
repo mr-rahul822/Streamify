@@ -70,12 +70,17 @@ export const getOutgoingFriendReqs = async () => {
 };
 
 export const sendFriendRequest = async (userId) => {
+  
   try {
+    console.log("sendFriendRequest received userId:", userId);
     // Prefer sending in body to avoid leaking [object Object] into URL
     const idValue = userId && typeof userId === "object" && userId._id ? userId._id : userId;
     const recipientId = String(idValue || "").trim();
     const res = await axiosInstance.post(`/user/friend-request`, { recipientId });
     return res.data;
+
+    console.log("sendFriendRequest received userId:", userId);
+    console.log("Final recipientId being sent:", recipientId);
   } catch (error) {
     console.log("Error in sendFriendRequest:", error);
     console.log("Server response:", error.response?.data);

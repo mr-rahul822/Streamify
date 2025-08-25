@@ -52,6 +52,9 @@ export async function sendFriendRequest(req,res) {
         const rawRecipient = (req.params && req.params.id) ? req.params.id : req.body?.recipientId;
         const  recipientId =  String(rawRecipient || "").trim();
 
+        console.log("Raw Recipient:", rawRecipient);
+        console.log("Final RecipientId:", recipientId);
+
         if (!recipientId) {
             return res.status(400).json({ message: "Recipient id is required" });
         }
