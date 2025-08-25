@@ -71,13 +71,45 @@ export const getOutgoingFriendReqs = async () => {
 
 export const sendFriendRequest = async (userId) => {
   try {
-    const idValue = userId && typeof userId === "object" && userId._id ? userId._id : userId;
-    const recipientId = String(idValue || "").trim();
+    // 🔍 Debug incoming value
+    console.log("sendFriendRequest received userId:", userId);
+
+    // ✅ Normalize userId: handle both string & ObjectId
+    let recipientId;
+
+    if (userId && typeof userId === "object") {
+      // Handle MongoDB ObjectId objects
+      if (userId._bsontype === "ObjectID" || userId.constructor.name === "ObjectId") {
+        recipientId = userId.toString();
+      } else if (userId._id) {
+        // If it's a user object with _id
+        recipientId = userId._id.toString();
+      } else if (userId.toString && typeof userId.toString === "function") {
+        // Fallback for any object with toString method
+        recipientId = userId.toString();
+      } else {
+        // If it's a plain object, try to get a string representation
+        recipientId = JSON.stringify(userId);
+      }
+    } else {
+      // If it's already a string or primitive
+      recipientId = String(userId || "").trim();
+    }
+
+    // ❌ Invalid case
+    if (!recipientId || recipientId === "[object Object]") {
+      throw new Error("Recipient ID is missing or invalid in sendFriendRequest");
+    }
+
+    console.log("📤 Final recipientId being sent:", recipientId);
+
+    // ✅ Send to backend
     const res = await axiosInstance.post(`/user/friend-request`, { recipientId });
     return res.data;
+
   } catch (error) {
-    console.log("Error in sendFriendRequest:", error);
-    console.log("Server response:", error.response?.data);
+    console.error("Error in sendFriendRequest:", error);
+    console.error("Server response:", error.response?.data);
     throw error;
   }
 };

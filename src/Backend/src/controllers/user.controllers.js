@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import User from "../Models/User.js"
 import FriendRequest from "../Models/FriendRequest.js";
 
@@ -46,7 +47,25 @@ export async function sendFriendRequest(req,res) {
 
     try {
         const myId  = req.user.id;
-        const  recipientId =  req.params.id;
+        // Accept recipient id from URL param or request body
+        const rawRecipient = (req.params && req.params.id) ? req.params.id : req.body?.recipientId;
+        const  recipientId =  String(rawRecipient || "").trim();
+
+        console.log("Raw Recipient:", rawRecipient);
+        console.log("Raw Recipient Type:", typeof rawRecipient);
+        console.log("Final RecipientId:", recipientId);
+        console.log("Final RecipientId Type:", typeof recipientId);
+
+        if (!recipientId) {
+            return res.status(400).json({ message: "Recipient id is required" });
+        }
+        if (!mongoose.Types.ObjectId.isValid(recipientId)) {
+            return res.status(400).json({ 
+                message: "Invalid recipient id", 
+                receivedValue: recipientId,
+                receivedType: typeof recipientId 
+            });
+        }
 
         if(myId === recipientId){
             return res.status(400).json({ message: "You can't send friend request to yourself" });

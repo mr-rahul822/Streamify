@@ -78,21 +78,27 @@ export const sendFriendRequest = async (userId) => {
     let recipientId;
 
     if (userId && typeof userId === "object") {
-      // Agar full user object aya hai jisme _id hai
-      if (userId._id) {
-        recipientId = userId._id.toString();
-      } else if (userId.toString) {
-        // Agar directly ObjectId aya hai
+      // Handle MongoDB ObjectId objects
+      if (userId._bsontype === "ObjectID" || userId.constructor.name === "ObjectId") {
         recipientId = userId.toString();
+      } else if (userId._id) {
+        // If it's a user object with _id
+        recipientId = userId._id.toString();
+      } else if (userId.toString && typeof userId.toString === "function") {
+        // Fallback for any object with toString method
+        recipientId = userId.toString();
+      } else {
+        // If it's a plain object, try to get a string representation
+        recipientId = JSON.stringify(userId);
       }
     } else {
-      // Agar already string hai
+      // If it's already a string or primitive
       recipientId = String(userId || "").trim();
     }
 
     // ❌ Invalid case
-    if (!recipientId) {
-      throw new Error("Recipient ID is missing in sendFriendRequest");
+    if (!recipientId || recipientId === "[object Object]") {
+      throw new Error("Recipient ID is missing or invalid in sendFriendRequest");
     }
 
     console.log("📤 Final recipientId being sent:", recipientId);
