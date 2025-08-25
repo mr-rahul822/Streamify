@@ -45,6 +45,8 @@ const ChatPage = () => {
     queryKey: ["streamToken"],
     queryFn: getStreamToken,
     enabled: !!authUser,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Friends list
@@ -63,31 +65,36 @@ const ChatPage = () => {
 
         const client = StreamChat.getInstance(STREAM_API_KEY);
 
-        // connect current user
-        await client.connectUser(
-          {
-            id: String(authUser._id),
-            name: authUser.fullName,
-            image: authUser.profilePic,
-          },
-          tokenData.token
-        );
+        const myId = String(authUser._id);
 
-        // Ensure targetUserId is always a string
-        let targetId;
-        if (typeof targetUserIdParam === "object" && targetUserIdParam?._id) {
-          targetId = String(targetUserIdParam._id);
-        } else {
-          targetId = String(targetUserIdParam);
-        }
-
-        if (!targetId) {
-          console.error("❌ Invalid target user id:", targetUserIdParam);
-          toast.error("Invalid chat target user");
+        // Validate target id from URL params
+        const rawTarget = targetUserIdParam;
+        const isValidId = (s) => /^[a-f0-9]{24}$/i.test(String(s || ""));
+        if (rawTarget === "[object Object]" || !isValidId(rawTarget)) {
+          console.error("❌ Invalid target user id:", rawTarget);
+          toast.error("Invalid chat link");
+          setLoading(false);
           return;
         }
 
-        const myId = String(authUser._id);
+        const targetId = typeof rawTarget === "object" && rawTarget?._id
+          ? String(rawTarget._id)
+          : String(rawTarget);
+
+        // connect current user only if needed
+        if (client.userID && client.userID !== myId) {
+          await client.disconnectUser();
+        }
+        if (!client.userID) {
+          await client.connectUser(
+            {
+              id: myId,
+              name: authUser.fullName,
+              image: authUser.profilePic,
+            },
+            tokenData.token
+          );
+        }
 
         // Always create stable channel id (sorted)
         const channelId = [myId, targetId].sort().join("-");
@@ -109,7 +116,7 @@ const ChatPage = () => {
     };
 
     initChat();
-  }, [tokenData, authUser, targetUserIdParam]);
+  }, [tokenData?.token, authUser?._id, targetUserIdParam]);
 
   const handleVideoCall = () => {
     if (channel) {

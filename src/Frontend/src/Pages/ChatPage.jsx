@@ -39,6 +39,8 @@ const ChatPage = () => {
     queryKey: ["streamToken"],
     queryFn: getStreamToken,
     enabled: !!authUser, // this will run only when authUser is available
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
   });
 
 
@@ -63,22 +65,36 @@ const ChatPage = () => {
 
         const client = StreamChat.getInstance(STREAM_API_KEY);
 
-        
-        await client.connectUser(
-          {
-            id: String(authUser._id),
-            name: authUser.fullName,
-            image: authUser.profilePic,
-          },
-          tokenData.token
-        );
-        
-
-        // Ensure both ids are strings before building channel id
         const myId = String(authUser._id);
-        const otherId = typeof targetUserId === "object" && targetUserId?._id
-          ? String(targetUserId._id)
-          : String(targetUserId);
+
+        // Validate target id from URL params
+        const rawTarget = targetUserId;
+        const isValidId = (s) => /^[a-f0-9]{24}$/i.test(String(s || ""));
+        if (rawTarget === "[object Object]" || !isValidId(rawTarget)) {
+          console.error("❌ Invalid target user id:", rawTarget);
+          toast.error("Invalid chat link");
+          setLoading(false);
+          return;
+        }
+
+        const otherId = typeof rawTarget === "object" && rawTarget?._id
+          ? String(rawTarget._id)
+          : String(rawTarget);
+
+        // Connect only if needed
+        if (client.userID && client.userID !== myId) {
+          await client.disconnectUser();
+        }
+        if (!client.userID) {
+          await client.connectUser(
+            {
+              id: myId,
+              name: authUser.fullName,
+              image: authUser.profilePic,
+            },
+            tokenData.token
+          );
+        }
 
         const channelId = [myId, otherId].sort().join("-");
 
@@ -103,7 +119,7 @@ const ChatPage = () => {
     };
 
     initChat();
-  }, [tokenData, authUser, targetUserId]);
+  }, [tokenData?.token, authUser?._id, targetUserId]);
 
   const handleVideoCall = () => {
     if (channel) {
