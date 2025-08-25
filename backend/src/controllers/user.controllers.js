@@ -1,6 +1,7 @@
 import User from "../Models/User.js"
 import FriendRequest from "../Models/FriendRequest.js";
 import { convertImageUrls } from "../lib/utils.js";
+import mongoose from "mongoose";
 
 
 export async function getRecommendedUsers(req,res){
@@ -54,7 +55,7 @@ export async function sendFriendRequest(req,res) {
         if (!recipientId) {
             return res.status(400).json({ message: "Recipient id is required" });
         }
-        if (!recipientId.match(/^[a-fA-F0-9]{24}$/)) {
+        if (!mongoose.Types.ObjectId.isValid(recipientId)) {
             return res.status(400).json({ message: "Invalid recipient id" });
         }
 
