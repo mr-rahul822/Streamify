@@ -49,6 +49,7 @@ const FriendsPage = () => {
   // ✅ Track outgoing requests
   useEffect(() => {
     const outgoingIds = new Set();
+    console.log("error is here")
     if (outgoingFriendReqs && outgoingFriendReqs.length > 0) {
       outgoingFriendReqs.forEach((req) => {
         if (req.recipient && req.recipient._id) {
