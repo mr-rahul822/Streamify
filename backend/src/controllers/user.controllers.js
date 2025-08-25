@@ -47,7 +47,9 @@ export async function sendFriendRequest(req,res) {
 
     try {
         const myId  = req.user.id;
-        const  recipientId =  String(req.params.id || "").trim();
+        // Accept recipient id from URL param or request body
+        const rawRecipient = (req.params && req.params.id) ? req.params.id : req.body?.recipientId;
+        const  recipientId =  String(rawRecipient || "").trim();
 
         if (!recipientId) {
             return res.status(400).json({ message: "Recipient id is required" });

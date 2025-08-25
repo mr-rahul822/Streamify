@@ -71,11 +71,10 @@ export const getOutgoingFriendReqs = async () => {
 
 export const sendFriendRequest = async (userId) => {
   try {
-    // Coerce possible object input into a string id and URL-encode
-    const idValue =
-      userId && typeof userId === "object" && userId._id ? userId._id : userId;
-    const safeId = encodeURIComponent(String(idValue || "").trim());
-    const res = await axiosInstance.post(`/user/friend-request/${safeId}`);
+    // Prefer sending in body to avoid leaking [object Object] into URL
+    const idValue = userId && typeof userId === "object" && userId._id ? userId._id : userId;
+    const recipientId = String(idValue || "").trim();
+    const res = await axiosInstance.post(`/user/friend-request`, { recipientId });
     return res.data;
   } catch (error) {
     console.log("Error in sendFriendRequest:", error);

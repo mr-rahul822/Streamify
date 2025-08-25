@@ -71,10 +71,9 @@ export const getOutgoingFriendReqs = async () => {
 
 export const sendFriendRequest = async (userId) => {
   try {
-    const idValue =
-      userId && typeof userId === "object" && userId._id ? userId._id : userId;
-    const safeId = encodeURIComponent(String(idValue || "").trim());
-    const res = await axiosInstance.post(`/user/friend-request/${safeId}`);
+    const idValue = userId && typeof userId === "object" && userId._id ? userId._id : userId;
+    const recipientId = String(idValue || "").trim();
+    const res = await axiosInstance.post(`/user/friend-request`, { recipientId });
     return res.data;
   } catch (error) {
     console.log("Error in sendFriendRequest:", error);
