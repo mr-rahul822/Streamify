@@ -73,20 +73,31 @@ export const sendFriendRequest = async (userId) => {
   try {
     // 🔍 Debug incoming value
     console.log("sendFriendRequest received userId:", userId);
+    console.log("userId type:", typeof userId);
+    console.log("userId constructor:", userId?.constructor?.name);
 
     // ✅ Normalize userId: handle both string & ObjectId
     let recipientId;
 
     if (userId && typeof userId === "object") {
-      // Handle MongoDB ObjectId objects
-      if (userId._bsontype === "ObjectID" || userId.constructor.name === "ObjectId") {
+      // Handle MongoDB ObjectId objects - check multiple properties
+      if (userId._bsontype === "ObjectID" || 
+          userId.constructor?.name === "ObjectId" ||
+          userId.buffer || // This catches the {buffer: {...}} case
+          (userId.toString && userId.toString().match(/^[0-9a-fA-F]{24}$/))) {
         recipientId = userId.toString();
       } else if (userId._id) {
         // If it's a user object with _id
         recipientId = userId._id.toString();
       } else if (userId.toString && typeof userId.toString === "function") {
         // Fallback for any object with toString method
-        recipientId = userId.toString();
+        const toStringResult = userId.toString();
+        // Check if toString returns a valid ObjectId string
+        if (toStringResult.match(/^[0-9a-fA-F]{24}$/)) {
+          recipientId = toStringResult;
+        } else {
+          recipientId = toStringResult;
+        }
       } else {
         // If it's a plain object, try to get a string representation
         recipientId = JSON.stringify(userId);
