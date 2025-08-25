@@ -70,20 +70,40 @@ export const getOutgoingFriendReqs = async () => {
 };
 
 export const sendFriendRequest = async (userId) => {
-  
   try {
+    // 🔍 Debug incoming value
     console.log("sendFriendRequest received userId:", userId);
-    // Prefer sending in body to avoid leaking [object Object] into URL
-    const idValue = userId && typeof userId === "object" && userId._id ? userId._id : userId;
-    const recipientId = String(idValue || "").trim();
+
+    // ✅ Normalize userId: handle both string & ObjectId
+    let recipientId;
+
+    if (userId && typeof userId === "object") {
+      // Agar full user object aya hai jisme _id hai
+      if (userId._id) {
+        recipientId = userId._id.toString();
+      } else if (userId.toString) {
+        // Agar directly ObjectId aya hai
+        recipientId = userId.toString();
+      }
+    } else {
+      // Agar already string hai
+      recipientId = String(userId || "").trim();
+    }
+
+    // ❌ Invalid case
+    if (!recipientId) {
+      throw new Error("Recipient ID is missing in sendFriendRequest");
+    }
+
+    console.log("📤 Final recipientId being sent:", recipientId);
+
+    // ✅ Send to backend
     const res = await axiosInstance.post(`/user/friend-request`, { recipientId });
     return res.data;
 
-    console.log("sendFriendRequest received userId:", userId);
-    console.log("Final recipientId being sent:", recipientId);
   } catch (error) {
-    console.log("Error in sendFriendRequest:", error);
-    console.log("Server response:", error.response?.data);
+    console.error("Error in sendFriendRequest:", error);
+    console.error("Server response:", error.response?.data);
     throw error;
   }
 };
