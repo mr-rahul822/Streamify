@@ -71,56 +71,36 @@ export const getOutgoingFriendReqs = async () => {
 
 export const sendFriendRequest = async (userId) => {
   try {
-    // 🔍 Debug incoming value
     console.log("sendFriendRequest received userId:", userId);
     console.log("userId type:", typeof userId);
     console.log("userId constructor:", userId?.constructor?.name);
 
-    // ✅ Normalize userId: handle both string & ObjectId
     let recipientId;
 
-    if (userId && typeof userId === "object") {
-      // Handle Buffer objects (MongoDB ObjectId serialization issue)
-      if (userId.buffer && Array.isArray(userId.buffer)) {
-        // Convert Buffer to hex string
-        const bufferArray = Array.from(userId.buffer);
-        recipientId = bufferArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
-        console.log("Converted Buffer to hex:", recipientId);
+    // If it's an object with _id (common case from Mongo/Mongoose populated object)
+    if (userId && typeof userId === "object" && userId._id) {
+      recipientId = String(userId._id);
+    }
+    // If it's already a plain string
+    else if (typeof userId === "string") {
+      recipientId = userId.trim();
+    }
+    // If it's a Buffer-like object from Mongo
+    else if (userId?.buffer) {
+      try {
+        recipientId = Buffer.from(userId.buffer).toString("hex");
+      } catch (e) {
+        console.error("Failed to parse buffer userId:", e);
       }
-      // Handle MongoDB ObjectId objects - check multiple properties
-      else if (userId._bsontype === "ObjectID" || 
-          userId.constructor?.name === "ObjectId" ||
-          (userId.toString && userId.toString().match(/^[0-9a-fA-F]{24}$/))) {
-        recipientId = userId.toString();
-      } else if (userId._id) {
-        // If it's a user object with _id
-        recipientId = userId._id.toString();
-      } else if (userId.toString && typeof userId.toString === "function") {
-        // Fallback for any object with toString method
-        const toStringResult = userId.toString();
-        // Check if toString returns a valid ObjectId string
-        if (toStringResult.match(/^[0-9a-fA-F]{24}$/)) {
-          recipientId = toStringResult;
-        } else {
-          recipientId = toStringResult;
-        }
-      } else {
-        // If it's a plain object, try to get a string representation
-        recipientId = JSON.stringify(userId);
-      }
-    } else {
-      // If it's already a string or primitive
-      recipientId = String(userId || "").trim();
     }
 
-    // ❌ Invalid case
+    // Validate final recipientId
     if (!recipientId || recipientId === "[object Object]") {
       throw new Error("Recipient ID is missing or invalid in sendFriendRequest");
     }
 
     console.log("📤 Final recipientId being sent:", recipientId);
 
-    // ✅ Send to backend
     const res = await axiosInstance.post(`/user/friend-request`, { recipientId });
     return res.data;
 
