@@ -20,12 +20,13 @@ import toast from "react-hot-toast";
 import ChatLoader from "../components/ChatLoader";
 import CallButton from "../components/CallButton";
 
-const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY || "placeholder_key_for_build";
+const STREAM_API_KEY =
+  import.meta.env.VITE_STREAM_API_KEY || "placeholder_key_for_build";
 
 console.log("STREAM_API_KEY available:", !!STREAM_API_KEY);
 
 const ChatPage = () => {
-  const { id: targetUserId } = useParams();
+  const { id: targetUserIdParam } = useParams();
   const navigate = useNavigate();
 
   const [chatClient, setChatClient] = useState(null);
@@ -35,57 +36,64 @@ const ChatPage = () => {
   const { authUser, isLoading: authLoading } = useAuthUser();
   const { theme } = useThemeStore();
 
-  const { data: tokenData, error: tokenError, isLoading: tokenLoading } = useQuery({
+  // Token from backend
+  const {
+    data: tokenData,
+    error: tokenError,
+    isLoading: tokenLoading,
+  } = useQuery({
     queryKey: ["streamToken"],
     queryFn: getStreamToken,
-    enabled: !!authUser, // this will run only when authUser is available
+    enabled: !!authUser,
   });
 
-
-
+  // Friends list
   const { data: friends = [], isLoading: friendsLoading } = useQuery({
     queryKey: ["friends"],
     queryFn: getUserFriends,
     enabled: !!authUser,
   });
 
-
-
   useEffect(() => {
     const initChat = async () => {
-      if (!tokenData?.token || !authUser) {
-        // console.log("Missing token or authUser:", { token: tokenData?.token, authUser });
-        return;
-      }
+      if (!tokenData?.token || !authUser) return;
 
       try {
         console.log("Initializing stream chat client...");
 
         const client = StreamChat.getInstance(STREAM_API_KEY);
 
-        
+        // connect current user
         await client.connectUser(
           {
-            id: authUser._id,
+            id: String(authUser._id),
             name: authUser.fullName,
             image: authUser.profilePic,
           },
           tokenData.token
         );
-        
 
-        //
-        // Ensure both IDs are strings to avoid [object Object] in channel ID
-        const userId1 = authUser._id.toString();
-        const userId2 = targetUserId.toString();
-        const channelId = [userId1, userId2].sort().join("-");
+        // Ensure targetUserId is always a string
+        let targetId;
+        if (typeof targetUserIdParam === "object" && targetUserIdParam?._id) {
+          targetId = String(targetUserIdParam._id);
+        } else {
+          targetId = String(targetUserIdParam);
+        }
 
-        // you and me
-        // if i start the chat => channelId: [myId, yourId]
-        // if you start the chat => channelId: [yourId, myId]  => [myId,yourId]
+        if (!targetId) {
+          console.error("❌ Invalid target user id:", targetUserIdParam);
+          toast.error("Invalid chat target user");
+          return;
+        }
+
+        const myId = String(authUser._id);
+
+        // Always create stable channel id (sorted)
+        const channelId = [myId, targetId].sort().join("-");
 
         const currChannel = client.channel("messaging", channelId, {
-          members: [userId1, userId2],
+          members: [myId, targetId],
         });
 
         await currChannel.watch();
@@ -101,20 +109,19 @@ const ChatPage = () => {
     };
 
     initChat();
-  }, [tokenData, authUser, targetUserId]);
+  }, [tokenData, authUser, targetUserIdParam]);
 
   const handleVideoCall = () => {
     if (channel) {
       const callUrl = `${window.location.origin}/call/${channel.id}`;
-
       channel.sendMessage({
         text: `I've started a video call. Join me here: ${callUrl}`,
       });
-
       toast.success("Video call link sent successfully!");
     }
   };
 
+  // ---------- UI States ----------
   if (authLoading) {
     return (
       <div className="flex items-center justify-center h-[93vh]">
@@ -130,7 +137,9 @@ const ChatPage = () => {
     return (
       <div className="flex items-center justify-center h-[93vh]">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-red-600 mb-2">Authentication Required</h2>
+          <h2 className="text-xl font-semibold text-red-600 mb-2">
+            Authentication Required
+          </h2>
           <p className="text-gray-600">Please log in to access the chat</p>
         </div>
       </div>
@@ -141,8 +150,12 @@ const ChatPage = () => {
     return (
       <div className="flex items-center justify-center h-[93vh]">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-red-600 mb-2">Stream API Key Missing</h2>
-          <p className="text-gray-600">Please add VITE_STREAM_API_KEY to your frontend .env file</p>
+          <h2 className="text-xl font-semibold text-red-600 mb-2">
+            Stream API Key Missing
+          </h2>
+          <p className="text-gray-600">
+            Please add VITE_STREAM_API_KEY to your frontend .env file
+          </p>
         </div>
       </div>
     );
@@ -152,10 +165,14 @@ const ChatPage = () => {
     return (
       <div className="flex items-center justify-center h-[93vh]">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-red-600 mb-2">Failed to connect to chat</h2>
-          <p className="text-gray-600">Please check your Stream API configuration and try again.</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <h2 className="text-xl font-semibold text-red-600 mb-2">
+            Failed to connect to chat
+          </h2>
+          <p className="text-gray-600">
+            Please check your Stream API configuration and try again.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             Retry
@@ -164,8 +181,6 @@ const ChatPage = () => {
       </div>
     );
   }
-
- 
 
   // Map app theme to Stream Chat theme (light/dark)
   const darkThemes = new Set([
@@ -181,12 +196,15 @@ const ChatPage = () => {
     "sunset",
     "coffee",
   ]);
-  const chatTheme = darkThemes.has(theme) ? "str-chat__theme-dark" : "str-chat__theme-light";
+  const chatTheme = darkThemes.has(theme)
+    ? "str-chat__theme-dark"
+    : "str-chat__theme-light";
 
+  // ---------- Main Render ----------
   return (
     <div className="h-[93vh]">
       <div className="flex h-full">
-        {/* Sidebar: friends list (Instagram-like) */}
+        {/* Sidebar: friends list */}
         <aside className="w-80 max-w-[22rem] border-r border-base-300 bg-base-100 overflow-y-auto">
           <div className="px-4 py-3 border-b border-base-300">
             <h2 className="text-lg font-semibold">Messages</h2>
@@ -199,7 +217,7 @@ const ChatPage = () => {
               <div className="p-4 text-sm opacity-70">No friends yet</div>
             )}
             {friends.map((friend) => {
-              const active = friend._id === targetUserId;
+              const active = friend._id === targetUserIdParam;
               return (
                 <button
                   key={friend._id}
@@ -248,6 +266,6 @@ const ChatPage = () => {
       </div>
     </div>
   );
-}
+};
 
-export default ChatPage
+export default ChatPage;
