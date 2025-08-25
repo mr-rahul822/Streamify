@@ -47,7 +47,14 @@ export async function sendFriendRequest(req,res) {
 
     try {
         const myId  = req.user.id;
-        const  recipientId =  req.params.id;
+        const  recipientId =  String(req.params.id || "").trim();
+
+        if (!recipientId) {
+            return res.status(400).json({ message: "Recipient id is required" });
+        }
+        if (!recipientId.match(/^[a-fA-F0-9]{24}$/)) {
+            return res.status(400).json({ message: "Invalid recipient id" });
+        }
 
         if(myId === recipientId){
             return res.status(400).json({ message: "You can't send friend request to yourself" });
