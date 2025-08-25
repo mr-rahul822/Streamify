@@ -33,10 +33,7 @@ if (process.env.NODE_ENV === "production") {
   const frontendPath = path.join(process.cwd(), "../frontend/dist");
   const indexPath = path.join(frontendPath, "index.html");
 
-  console.log("Serving frontend from:", frontendPath);
-  console.log("Index file path:", indexPath);
-  console.log("Current directory:", process.cwd());
-  console.log("__dirname:", __dirname);
+
 
   // Check if the directory exists
   import('fs').then(fs => {
