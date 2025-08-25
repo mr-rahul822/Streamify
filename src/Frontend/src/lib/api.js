@@ -80,10 +80,16 @@ export const sendFriendRequest = async (userId) => {
     let recipientId;
 
     if (userId && typeof userId === "object") {
+      // Handle Buffer objects (MongoDB ObjectId serialization issue)
+      if (userId.buffer && Array.isArray(userId.buffer)) {
+        // Convert Buffer to hex string
+        const bufferArray = Array.from(userId.buffer);
+        recipientId = bufferArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+        console.log("Converted Buffer to hex:", recipientId);
+      }
       // Handle MongoDB ObjectId objects - check multiple properties
-      if (userId._bsontype === "ObjectID" || 
+      else if (userId._bsontype === "ObjectID" || 
           userId.constructor?.name === "ObjectId" ||
-          userId.buffer || // This catches the {buffer: {...}} case
           (userId.toString && userId.toString().match(/^[0-9a-fA-F]{24}$/))) {
         recipientId = userId.toString();
       } else if (userId._id) {

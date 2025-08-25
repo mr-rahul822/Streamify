@@ -50,10 +50,29 @@ export async function sendFriendRequest(req,res) {
         const myId  = req.user.id;
         // Accept recipient id from URL param or request body
         const rawRecipient = (req.params && req.params.id) ? req.params.id : req.body?.recipientId;
-        const  recipientId =  String(rawRecipient || "").trim();
-
+        
         console.log("Raw Recipient:", rawRecipient);
         console.log("Raw Recipient Type:", typeof rawRecipient);
+        console.log("Raw Recipient Constructor:", rawRecipient?.constructor?.name);
+        
+        // Handle different types of recipient IDs
+        let recipientId;
+        
+        if (rawRecipient && typeof rawRecipient === "object") {
+            // Handle Buffer objects
+            if (rawRecipient.buffer && Array.isArray(rawRecipient.buffer)) {
+                const bufferArray = Array.from(rawRecipient.buffer);
+                recipientId = bufferArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+                console.log("Converted Buffer to hex:", recipientId);
+            } else if (rawRecipient.toString && typeof rawRecipient.toString === "function") {
+                recipientId = rawRecipient.toString();
+            } else {
+                recipientId = JSON.stringify(rawRecipient);
+            }
+        } else {
+            recipientId = String(rawRecipient || "").trim();
+        }
+
         console.log("Final RecipientId:", recipientId);
         console.log("Final RecipientId Type:", typeof recipientId);
 
