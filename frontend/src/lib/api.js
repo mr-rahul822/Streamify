@@ -125,27 +125,19 @@ export const getFriendRequests = async () => {
 export const sendFriendRequest = async (userId) => {
   try {
     console.log("sendFriendRequest received userId:", userId);
-    console.log("userId type:", typeof userId);
-    console.log("userId constructor:", userId?.constructor?.name);
+    console.log("userId JSON:", JSON.stringify(userId));
 
-    console.log("userId raw:", userId);
-console.log("userId JSON:", JSON.stringify(userId));
     let recipientId;
 
     if (userId && typeof userId === "object" && userId._id) {
       // Case 1: Mongoose user object
       recipientId = String(userId._id);
     } else if (typeof userId === "string") {
-      // Case 2: Already a string
+      // Case 2: Already string
       recipientId = userId.trim();
     } else if (userId?.buffer) {
-      // Case 3: Buffer-like (from MongoDB ObjectId)
-      try {
-        recipientId = Buffer.from(userId.buffer).toString("hex"); 
-        // if hex fails, try: .toString("base64")
-      } catch (e) {
-        console.error("Failed to parse buffer userId:", e);
-      }
+      // Case 3: Raw buffer → convert to proper hex ObjectId
+      recipientId = Buffer.from(Object.values(userId.buffer)).toString("hex");
     }
 
     if (!recipientId || recipientId === "[object Object]") {
@@ -163,6 +155,7 @@ console.log("userId JSON:", JSON.stringify(userId));
     throw error;
   }
 };
+
 
 
 export async function acceptFriendRequest(requestId) {
