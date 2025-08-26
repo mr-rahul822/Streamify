@@ -136,8 +136,9 @@ export const sendFriendRequest = async (userId) => {
       // Case 2: Already string
       recipientId = userId.trim();
     } else if (userId?.buffer) {
-      // Case 3: Raw buffer → convert to proper hex ObjectId
-      recipientId = Buffer.from(Object.values(userId.buffer)).toString("hex");
+      // Case 3: Raw buffer → convert manually (no Node Buffer)
+      const bytes = Object.values(userId.buffer);
+      recipientId = bytes.map((b) => b.toString(16).padStart(2, "0")).join("");
     }
 
     if (!recipientId || recipientId === "[object Object]") {
