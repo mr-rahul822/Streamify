@@ -112,15 +112,15 @@ export const getOutgoingFriendReqs = async () => {
 // };
 
 
-// export const getFriendRequests = async () => {
-//   try {
-//     const res = await axiosInstance.get("/user/friend-request");
-//     return res.data;
-//   } catch (error) {
-//     console.log("Error in getFriendRequests:", error);
-//     return null;
-//   }
-// };
+export const getFriendRequests = async () => {
+  try {
+    const res = await axiosInstance.get("/user/friend-request");
+    return res.data;
+  } catch (error) {
+    console.log("Error in getFriendRequests:", error);
+    return null;
+  }
+};
 
 export const sendFriendRequest = async (userId) => {
   try {
