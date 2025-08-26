@@ -240,11 +240,12 @@ const ChatPage = () => {
               <div className="p-4 text-sm opacity-70">No friends yet</div>
             )}
             {friends.map((friend) => {
-              const active = normalizeId(friend._id) === normalizeId(targetUserIdParam);
+              const friendId = normalizeId(friend._id); // force to string
+              const active = friendId === normalizeId(targetUserIdParam);
               return (
                 <button
-                  key={normalizeId(friend._id)}
-                  onClick={() => navigate(`/chat/${normalizeId(friend._id)}`)}
+                  key={friendId}
+                  onClick={() => navigate(`/chat/${friendId}`)}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-base-200 ${
                     active ? "bg-base-200" : ""
                   }`}
