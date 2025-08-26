@@ -25,6 +25,26 @@ const STREAM_API_KEY =
 
 console.log("STREAM_API_KEY available:", !!STREAM_API_KEY);
 
+// ✅ Helper to normalize all user ids into string
+function normalizeId(id) {
+  if (!id) return null;
+
+  if (typeof id === "string") {
+    return id.trim();
+  }
+
+  if (id._id) {
+    return String(id._id);
+  }
+
+  if (id.buffer) {
+    const bytes = Object.values(id.buffer);
+    return bytes.map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  return null;
+}
+
 const ChatPage = () => {
   const { id: targetUserIdParam } = useParams();
   const navigate = useNavigate();
@@ -65,23 +85,19 @@ const ChatPage = () => {
 
         const client = StreamChat.getInstance(STREAM_API_KEY);
 
-        const myId = String(authUser._id);
+        const myId = normalizeId(authUser._id);
+        const targetId = normalizeId(targetUserIdParam);
 
-        // Validate target id from URL params
-        const rawTarget = targetUserIdParam;
+        // Validate IDs
         const isValidId = (s) => /^[a-f0-9]{24}$/i.test(String(s || ""));
-        if (rawTarget === "[object Object]" || !isValidId(rawTarget)) {
-          console.error("❌ Invalid target user id:", rawTarget);
+        if (!isValidId(myId) || !isValidId(targetId)) {
+          console.error("❌ Invalid user ids:", { myId, targetId });
           toast.error("Invalid chat link");
           setLoading(false);
           return;
         }
 
-        const targetId = typeof rawTarget === "object" && rawTarget?._id
-          ? String(rawTarget._id)
-          : String(rawTarget);
-
-        // connect current user only if needed
+        // reconnect if needed
         if (client.userID && client.userID !== myId) {
           await client.disconnectUser();
         }
@@ -96,7 +112,7 @@ const ChatPage = () => {
           );
         }
 
-        // Always create stable channel id (sorted)
+        // Stable channel id
         const channelId = [myId, targetId].sort().join("-");
 
         const currChannel = client.channel("messaging", channelId, {
@@ -189,7 +205,7 @@ const ChatPage = () => {
     );
   }
 
-  // Map app theme to Stream Chat theme (light/dark)
+  // Map app theme to Stream Chat theme
   const darkThemes = new Set([
     "dark",
     "synthwave",
@@ -211,7 +227,7 @@ const ChatPage = () => {
   return (
     <div className="h-[93vh]">
       <div className="flex h-full">
-        {/* Sidebar: friends list */}
+        {/* Sidebar */}
         <aside className="w-80 max-w-[22rem] border-r border-base-300 bg-base-100 overflow-y-auto">
           <div className="px-4 py-3 border-b border-base-300">
             <h2 className="text-lg font-semibold">Messages</h2>
@@ -224,11 +240,11 @@ const ChatPage = () => {
               <div className="p-4 text-sm opacity-70">No friends yet</div>
             )}
             {friends.map((friend) => {
-              const active = friend._id === targetUserIdParam;
+              const active = normalizeId(friend._id) === normalizeId(targetUserIdParam);
               return (
                 <button
-                  key={friend._id}
-                  onClick={() => navigate(`/chat/${friend._id}`)}
+                  key={normalizeId(friend._id)}
+                  onClick={() => navigate(`/chat/${normalizeId(friend._id)}`)}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-base-200 ${
                     active ? "bg-base-200" : ""
                   }`}
@@ -250,7 +266,7 @@ const ChatPage = () => {
           </div>
         </aside>
 
-        {/* Chat content */}
+        {/* Chat */}
         <div className="flex-1 min-w-0">
           {loading || !chatClient || !channel ? (
             <ChatLoader />
