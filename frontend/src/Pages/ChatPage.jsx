@@ -205,24 +205,6 @@ const ChatPage = () => {
     );
   }
 
-  // Map app theme to Stream Chat theme
-  const darkThemes = new Set([
-    "dark",
-    "synthwave",
-    "halloween",
-    "forest",
-    "black",
-    "dracula",
-    "business",
-    "night",
-    "dim",
-    "sunset",
-    "coffee",
-  ]);
-  const chatTheme = darkThemes.has(theme)
-    ? "str-chat__theme-dark"
-    : "str-chat__theme-light";
-
   // ---------- Main Render ----------
   return (
     <div className="h-[93vh]">
@@ -272,7 +254,7 @@ const ChatPage = () => {
           {loading || !chatClient || !channel ? (
             <ChatLoader />
           ) : (
-            <Chat client={chatClient} theme={chatTheme}>
+            <Chat client={chatClient}>
               <Channel channel={channel}>
                 <div className="w-full relative h-full">
                   <CallButton handleVideoCall={handleVideoCall} />
