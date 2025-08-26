@@ -23,30 +23,39 @@ import CallButton from "../components/CallButton";
 const STREAM_API_KEY =
   import.meta.env.VITE_STREAM_API_KEY || "placeholder_key_for_build";
 
-console.log("STREAM_API_KEY available:", !!STREAM_API_KEY);
+console.log("🔑 STREAM_API_KEY available:", !!STREAM_API_KEY);
 
-// ✅ Helper to normalize all user ids into string
+// ✅ Normalize all user ids into string
 function normalizeId(id) {
+  console.log("🟢 normalizeId() called with:", id);
+
   if (!id) return null;
 
   if (typeof id === "string") {
+    console.log("   ↳ returning plain string:", id.trim());
     return id.trim();
   }
 
   if (id._id) {
+    console.log("   ↳ returning nested _id:", id._id);
     return String(id._id);
   }
 
   if (id.buffer) {
     const bytes = Object.values(id.buffer);
-    return bytes.map((b) => b.toString(16).padStart(2, "0")).join("");
+    const hex = bytes.map((b) => b.toString(16).padStart(2, "0")).join("");
+    console.log("   ↳ returning buffer hex:", hex);
+    return hex;
   }
 
+  console.warn("   ⚠️ Could not normalize id:", id);
   return null;
 }
 
 const ChatPage = () => {
   const { id: targetUserIdParam } = useParams();
+  console.log("📌 useParams() -> targetUserIdParam:", targetUserIdParam);
+
   const navigate = useNavigate();
 
   const [chatClient, setChatClient] = useState(null);
@@ -78,15 +87,20 @@ const ChatPage = () => {
 
   useEffect(() => {
     const initChat = async () => {
-      if (!tokenData?.token || !authUser) return;
+      if (!tokenData?.token || !authUser) {
+        console.log("⏳ Waiting for token/authUser...");
+        return;
+      }
 
       try {
-        console.log("Initializing stream chat client...");
-
+        console.log("🚀 Initializing stream chat client...");
         const client = StreamChat.getInstance(STREAM_API_KEY);
 
         const myId = normalizeId(authUser._id);
         const targetId = normalizeId(targetUserIdParam);
+
+        console.log("👤 My ID:", myId);
+        console.log("👥 Target ID (from URL):", targetId);
 
         // Validate IDs
         const isValidId = (s) => /^[a-f0-9]{24}$/i.test(String(s || ""));
@@ -99,9 +113,11 @@ const ChatPage = () => {
 
         // reconnect if needed
         if (client.userID && client.userID !== myId) {
+          console.log("🔄 Disconnecting previous user:", client.userID);
           await client.disconnectUser();
         }
         if (!client.userID) {
+          console.log("✅ Connecting user:", myId);
           await client.connectUser(
             {
               id: myId,
@@ -114,17 +130,19 @@ const ChatPage = () => {
 
         // Stable channel id
         const channelId = [myId, targetId].sort().join("-");
+        console.log("📡 Using channelId:", channelId);
 
         const currChannel = client.channel("messaging", channelId, {
           members: [myId, targetId],
         });
 
+        console.log("👀 Watching channel with members:", [myId, targetId]);
         await currChannel.watch();
 
         setChatClient(client);
         setChannel(currChannel);
       } catch (error) {
-        console.error("Error initializing chat:", error);
+        console.error("🔥 Error initializing chat:", error);
         toast.error("Could not connect to chat. Please try again.");
       } finally {
         setLoading(false);
@@ -137,6 +155,8 @@ const ChatPage = () => {
   const handleVideoCall = () => {
     if (channel) {
       const callUrl = `${window.location.origin}/call/${channel.id}`;
+      console.log("📹 Sending call link:", callUrl);
+
       channel.sendMessage({
         text: `I've started a video call. Join me here: ${callUrl}`,
       });
@@ -222,12 +242,18 @@ const ChatPage = () => {
               <div className="p-4 text-sm opacity-70">No friends yet</div>
             )}
             {friends.map((friend) => {
-              const friendId = normalizeId(friend._id); // force to string
+              console.log("👤 Rendering friend:", friend);
+              const friendId = normalizeId(friend._id);
+              console.log("   → Normalized friendId:", friendId);
+
               const active = friendId === normalizeId(targetUserIdParam);
               return (
                 <button
                   key={friendId}
-                  onClick={() => navigate(`/chat/${friendId}`)}
+                  onClick={() => {
+                    console.log("👉 Navigating to /chat/", friendId);
+                    navigate(`/chat/${friendId}`);
+                  }}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-base-200 ${
                     active ? "bg-base-200" : ""
                   }`}
