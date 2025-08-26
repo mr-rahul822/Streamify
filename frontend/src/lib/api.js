@@ -69,32 +69,85 @@ export const getOutgoingFriendReqs = async () => {
   }
 };
 
+// export const sendFriendRequest = async (userId) => {
+//   try {
+//     console.log("sendFriendRequest received userId:", userId);
+//     console.log("userId type:", typeof userId);
+//     console.log("userId constructor:", userId?.constructor?.name);
+
+//     let recipientId;
+
+//     // If it's an object with _id (common case from Mongo/Mongoose populated object)
+//     if (userId && typeof userId === "object" && userId._id) {
+//       recipientId = String(userId._id);
+//     }
+//     // If it's already a plain string
+//     else if (typeof userId === "string") {
+//       recipientId = userId.trim();
+//     }
+//     // If it's a Buffer-like object from Mongo
+//     else if (userId?.buffer) {
+//       try {
+//         recipientId = Buffer.from(userId.buffer).toString("hex");
+//       } catch (e) {
+//         console.error("Failed to parse buffer userId:", e);
+//       }
+//     }
+
+//     // Validate final recipientId
+//     if (!recipientId || recipientId === "[object Object]") {
+//       throw new Error("Recipient ID is missing or invalid in sendFriendRequest");
+//     }
+
+//     console.log("📤 Final recipientId being sent:", recipientId);
+
+//     const res = await axiosInstance.post(`/user/friend-request`, { recipientId });
+//     return res.data;
+
+//   } catch (error) {
+//     console.error("Error in sendFriendRequest:", error);
+//     console.error("Server response:", error.response?.data);
+//     throw error;
+//   }
+// };
+
+
+// export const getFriendRequests = async () => {
+//   try {
+//     const res = await axiosInstance.get("/user/friend-request");
+//     return res.data;
+//   } catch (error) {
+//     console.log("Error in getFriendRequests:", error);
+//     return null;
+//   }
+// };
+
 export const sendFriendRequest = async (userId) => {
   try {
     console.log("sendFriendRequest received userId:", userId);
     console.log("userId type:", typeof userId);
     console.log("userId constructor:", userId?.constructor?.name);
 
+    console.log("userId raw:", userId);
+console.log("userId JSON:", JSON.stringify(userId));
     let recipientId;
 
-    // If it's an object with _id (common case from Mongo/Mongoose populated object)
     if (userId && typeof userId === "object" && userId._id) {
+      // Case 1: Mongoose user object
       recipientId = String(userId._id);
-    }
-    // If it's already a plain string
-    else if (typeof userId === "string") {
+    } else if (typeof userId === "string") {
+      // Case 2: Already a string
       recipientId = userId.trim();
-    }
-    // If it's a Buffer-like object from Mongo
-    else if (userId?.buffer) {
+    } else if (userId?.buffer) {
+      // Case 3: Buffer-like (from MongoDB ObjectId)
       try {
-        recipientId = Buffer.from(userId.buffer).toString("hex");
+        recipientId = Buffer.from(userId.buffer).toString("hex"); 
+        // if hex fails, try: .toString("base64")
       } catch (e) {
         console.error("Failed to parse buffer userId:", e);
       }
     }
 
-    // Validate final recipientId
     if (!recipientId || recipientId === "[object Object]") {
       throw new Error("Recipient ID is missing or invalid in sendFriendRequest");
     }
@@ -111,16 +164,6 @@ export const sendFriendRequest = async (userId) => {
   }
 };
 
-
-export const getFriendRequests = async () => {
-  try {
-    const res = await axiosInstance.get("/user/friend-request");
-    return res.data;
-  } catch (error) {
-    console.log("Error in getFriendRequests:", error);
-    return null;
-  }
-};
 
 export async function acceptFriendRequest(requestId) {
   try {
