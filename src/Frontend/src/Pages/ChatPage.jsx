@@ -57,7 +57,7 @@ const ChatPage = () => {
   useEffect(() => {
     const initChat = async () => {
       if (!tokenData?.token || !authUser) {
-        // console.log("Missing token or authUser:", { token: tokenData?.token, authUser });
+        console.log("Missing token or authUser:", { token: tokenData?.token, authUser });
         return;
       }
 
