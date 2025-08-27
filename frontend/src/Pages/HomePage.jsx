@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import {getOutgoingFriendReqs,
   getRecommendedUsers,
   getUserFriends,
-  sendFriendRequest} from '../lib/api';
+  sendFriendRequest} from  "../lib/api.js";
 
   import { getLanguageFlag } from "../components/FriendCard";
 

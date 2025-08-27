@@ -1,8 +1,11 @@
 import React from 'react'
 import { Link } from 'react-router'
 import { LANGUAGE_TO_FLAG } from "../constants"
+import { normalizeId } from "../utils/id"; 
 
 const FriendCard = ({ friend }) => {
+   const id = normalizeId(friend?._id || friend);
+
   return (
      <div className="card bg-base-200 hover:shadow-md transition-shadow">
       <div className="card-body p-4">
@@ -31,9 +34,13 @@ const FriendCard = ({ friend }) => {
           </p>
         )}
 
-        <Link to={`/chat/${String(friend._id)}`} className="btn btn-outline w-full">
+        {/* <Link to={`/chat/${String(friend._id)}`} className="btn btn-outline w-full">
+          Message
+        </Link> */}
+         <Link to={`/chat/${id}`} className="btn btn-outline w-full">
           Message
         </Link>
+
       </div>
     </div>
   )

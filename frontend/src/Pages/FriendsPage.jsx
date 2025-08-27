@@ -8,7 +8,7 @@ import {
   getUserFriends, 
   getOutgoingFriendReqs, 
   sendFriendRequest 
-} from "../lib/api";
+} from "../lib/api.js";
 
 import FriendCard from "../components/FriendCard";
 import NoFriendsFound from "../components/NoFriendsFound";
