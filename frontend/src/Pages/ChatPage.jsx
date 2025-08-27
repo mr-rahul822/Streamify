@@ -48,12 +48,20 @@ function normalizeId(id) {
     return hex;
   }
 
+  // Handle case where id is an object but we need to convert it to string
+  if (typeof id === "object") {
+    console.log("   ↳ converting object to string:", JSON.stringify(id));
+    return JSON.stringify(id);
+  }
+
   console.warn("   ⚠️ Could not normalize id:", id);
   return null;
 }
 
 const ChatPage = () => {
-  const { id: targetUserIdParam } = useParams();
+  const params = useParams();
+  const targetUserIdParam = params?.id;
+  console.log("📌 useParams() -> params:", params);
   console.log("📌 useParams() -> targetUserIdParam:", targetUserIdParam);
 
   const navigate = useNavigate();
@@ -103,9 +111,14 @@ const ChatPage = () => {
         console.log("👥 Target ID (from URL):", targetId);
 
         // Validate IDs
-        const isValidId = (s) => /^[a-f0-9]{24}$/i.test(String(s || ""));
+        const isValidId = (s) => {
+          const str = String(s || "");
+          return /^[a-f0-9]{24}$/i.test(str);
+        };
+        
         if (!isValidId(myId) || !isValidId(targetId)) {
           console.error("❌ Invalid user ids:", { myId, targetId });
+          console.error("❌ Raw targetUserIdParam:", targetUserIdParam);
           toast.error("Invalid chat link");
           setLoading(false);
           return;
@@ -252,7 +265,7 @@ const ChatPage = () => {
                   key={friendId}
                   onClick={() => {
                     console.log("👉 Navigating to /chat/", friendId);
-                    navigate(`/chat/${friendId}`);
+                    navigate(`/chat/${String(friendId)}`);
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-base-200 ${
                     active ? "bg-base-200" : ""

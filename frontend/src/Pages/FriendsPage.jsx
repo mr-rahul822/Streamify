@@ -146,7 +146,7 @@ const FriendsPage = () => {
                     {req.status === "accepted" && (
                       <button
                         className="btn btn-primary w-full mt-3"
-                        onClick={() => navigate(`/chat/${req.recipient._id}`)}
+                        onClick={() => navigate(`/chat/${String(req.recipient._id)}`)}
                       >
                         <MessageSquareIcon className="size-4 mr-2" />
                         Message

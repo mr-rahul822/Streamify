@@ -25,7 +25,8 @@ const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 console.log("STREAM_API_KEY available:", !!STREAM_API_KEY);
 
 const ChatPage = () => {
-  const { id: targetUserId } = useParams();
+  const params = useParams();
+  const targetUserId = params?.id;
   const navigate = useNavigate();
 
   const [chatClient, setChatClient] = useState(null);
@@ -69,9 +70,14 @@ const ChatPage = () => {
 
         // Validate target id from URL params
         const rawTarget = targetUserId;
-        const isValidId = (s) => /^[a-f0-9]{24}$/i.test(String(s || ""));
+        const isValidId = (s) => {
+          const str = String(s || "");
+          return /^[a-f0-9]{24}$/i.test(str);
+        };
+        
         if (rawTarget === "[object Object]" || !isValidId(rawTarget)) {
           console.error("❌ Invalid target user id:", rawTarget);
+          console.error("❌ Raw targetUserId:", targetUserId);
           toast.error("Invalid chat link");
           setLoading(false);
           return;
@@ -221,7 +227,7 @@ const ChatPage = () => {
               return (
                 <button
                   key={friend._id}
-                  onClick={() => navigate(`/chat/${friend._id}`)}
+                  onClick={() => navigate(`/chat/${String(friend._id)}`)}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-base-200 ${
                     active ? "bg-base-200" : ""
                   }`}
