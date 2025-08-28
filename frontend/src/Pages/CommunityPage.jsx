@@ -37,10 +37,10 @@ const CommunitiesPage = () => {
 
       {showForm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-          <div className="bg-white p-6 rounded-2xl shadow-xl relative">
+          <div className="bg-base-100 p-6 rounded-2xl shadow-xl relative text-base-content">
             <button
               onClick={() => setShowForm(false)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-black"
+              className="absolute top-2 right-2 opacity-70 hover:opacity-100"
             >
               ✖
             </button>
