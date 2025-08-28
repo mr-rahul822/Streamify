@@ -1,7 +1,7 @@
 // src/utils/id.js
 export function normalizeId(x) {
   if (!x) return "";
-  if (typeof x === "string") return x;
+  if (typeof x === "string") return x.trim();
 
   // Mongoose document with nested _id
   if (x._id) return normalizeId(x._id);
@@ -9,15 +9,40 @@ export function normalizeId(x) {
   // Mongo ObjectId instance (node mongodb / mongoose)
   if (typeof x.toHexString === "function") return x.toHexString();
 
+  // Objects that implement a useful toString (e.g., ObjectId)
+  if (typeof x === "object" && typeof x.toString === "function") {
+    const s = x.toString();
+    if (/^[a-f0-9]{24}$/i.test(s)) return s;
+  }
+
   // Some serializers: { $oid: "..." }
   if (x.$oid) return x.$oid;
 
   // Buffer-like shape: { buffer: { data: [...] } } or { buffer: [...] }
-  const buf = x.buffer?.data ?? x.buffer;
-  if (Array.isArray(buf)) {
-    return buf.map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 24);
+  let buf = x.buffer?.data ?? x.buffer ?? x.data;
+  if (buf) {
+    // Node Buffer style: { type: 'Buffer', data: [...] }
+    if (buf.type === "Buffer" && Array.isArray(buf.data)) {
+      buf = buf.data;
+    }
+
+    // Typed array support
+    if (ArrayBuffer.isView(buf)) {
+      buf = Array.from(buf);
+    }
+
+    if (Array.isArray(buf)) {
+      const hex = buf
+        .map((b) => Number(b).toString(16).padStart(2, "0"))
+        .join("")
+        .slice(0, 24);
+      if (hex) return hex;
+    }
   }
 
   // fallback (safe)
-  return String(x);
+  const str = String(x);
+  // Avoid leaking "[object Object]" into URLs
+  if (str === "[object Object]") return "";
+  return str;
 }
