@@ -34,3 +34,29 @@
 .str-chat__message-input {
   border-top: 1px solid #ddd;
 }
+
+/* Stream Video dropdown (three-dots) visibility improvements */
+.video-theme-override .str-video__menu,
+.video-theme-override .str-video__menu-content,
+.video-theme-override .str-video__menu-list,
+.video-theme-override .str-video__menu-item {
+  background: rgba(20, 24, 28, 0.96) !important;
+  color: #ffffff !important;
+}
+
+.video-theme-override .str-video__menu-item:hover,
+.video-theme-override .str-video__menu-item:focus {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+.video-theme-override .str-video__menu-separator {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.video-theme-override .str-video__menu-item-icon,
+.video-theme-override .str-video__menu-trigger,
+.video-theme-override .str-video__menu-item-label {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}

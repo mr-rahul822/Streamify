@@ -130,7 +130,7 @@ const CallContent = () => {
   }
 
   return (
-    <StreamTheme>
+    <StreamTheme className="video-theme-override">
       <SpeakerLayout />
       <CallControls />
     </StreamTheme>
