@@ -6,10 +6,9 @@ import {getOutgoingFriendReqs,
   getRecommendedUsers,
   getUserFriends,
   sendFriendRequest} from  "../lib/api.js";
-
-  import { getLanguageFlag } from "../components/FriendCard";
-
-  import { capitialize } from "../lib/utils";
+import { getLanguageFlag } from "../components/FriendCard";
+import { capitialize } from "../lib/utils";
+import { normalizeId } from "../utils/id";
 
 import { Link } from "react-router";
 import { CheckCircleIcon, MapPinIcon, UserPlusIcon, UsersIcon } from "lucide-react";
@@ -41,13 +40,23 @@ const HomePage = () => {
 
     const {mutate : sendRequestMutation , isPending} = useMutation({
       mutationFn: sendFriendRequest,
-      onSuccess: () => {ff 
+      onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['outgoingFriendReqs'] });
         toast.success("Friend request sent successfully!");
       },
-      onError: (error) => {
+      onError: (error, userId) => {
         console.error("Error sending friend request:", error);
-        const errorMessage = error.response?.data?.message || "Failed to send friend request";
+        const serverMessage = error.response?.data?.message;
+        if (serverMessage && serverMessage.toLowerCase().includes("already exists")) {
+          setOutgoingRequestsIds((prev) => {
+            const next = new Set(prev);
+            next.add(normalizeId(userId));
+            return next;
+          });
+          toast("Friend request already exists", { icon: 'ℹ️' });
+          return;
+        }
+        const errorMessage = serverMessage || "Failed to send friend request";
         toast.error(errorMessage);
       }
     });
@@ -57,7 +66,7 @@ const HomePage = () => {
       if (outgoingFriendReqs && outgoingFriendReqs.length > 0) {
         outgoingFriendReqs.forEach((req) => {
           if (req.recipient && req.recipient._id) {
-            outgoingIds.add(req.recipient._id);
+            outgoingIds.add(normalizeId(req.recipient._id));
           }
         });
         setOutgoingRequestsIds(outgoingIds);
@@ -125,7 +134,7 @@ const HomePage = () => {
                   return null;
                 }
                 
-                const hasRequestBeenSent = outgoingRequestsIds.has(user._id);
+                const hasRequestBeenSent = outgoingRequestsIds.has(normalizeId(user._id));
 
                 return (
                   <div

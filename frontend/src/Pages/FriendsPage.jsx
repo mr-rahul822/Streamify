@@ -9,6 +9,7 @@ import {
   getOutgoingFriendReqs, 
   sendFriendRequest 
 } from "../lib/api.js";
+import { normalizeId } from "../utils/id";
 
 import FriendCard from "../components/FriendCard";
 import NoFriendsFound from "../components/NoFriendsFound";
@@ -38,10 +39,20 @@ const FriendsPage = () => {
       queryClient.invalidateQueries({ queryKey: ["outgoingFriendReqs"] });
       toast.success("Friend request sent successfully!");
     },
-    onError: (error) => {
+    onError: (error, userId) => {
       console.error("Error sending friend request:", error);
-      const errorMessage =
-        error.response?.data?.message || "Failed to send friend request";
+      const serverMessage = error.response?.data?.message;
+      if (serverMessage && serverMessage.toLowerCase().includes("already exists")) {
+        // Optimistically mark as sent
+        setOutgoingRequestsIds((prev) => {
+          const next = new Set(prev);
+          next.add(normalizeId(userId));
+          return next;
+        });
+        toast("Friend request already exists", { icon: 'ℹ️' });
+        return;
+      }
+      const errorMessage = serverMessage || "Failed to send friend request";
       toast.error(errorMessage);
     },
   });
