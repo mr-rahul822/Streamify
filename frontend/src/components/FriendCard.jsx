@@ -37,7 +37,7 @@ const FriendCard = ({ friend }) => {
         {/* <Link to={`/chat/${String(friend._id)}`} className="btn btn-outline w-full">
           Message
         </Link> */}
-        navigate(`/chat/${normalizeId(friend._id)}`);
+        {/* navigate(`/chat/${normalizeId(friend._id)}`); */}
          <Link to={`/chat/${normalizeId(friend._id)}`} className="btn btn-outline w-full">
           Message
         </Link>
