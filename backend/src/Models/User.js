@@ -58,6 +58,16 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// user.schema.js (or near model definition)
+userSchema.set("toJSON", {
+  virtuals: true,
+  versionKey: false,
+  transform: (doc, ret) => {
+    if (ret._id) ret._id = String(ret._id);
+    return ret;
+  },
+});
+
 userSchema.pre("save", async function (next){
     if(!this.isModified("password")) return next();
     try{

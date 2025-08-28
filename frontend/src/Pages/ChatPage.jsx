@@ -26,44 +26,13 @@ const STREAM_API_KEY =
 
 console.log("🔑 STREAM_API_KEY available:", !!STREAM_API_KEY);
 
-// // ✅ Normalize all user ids into string
-// function normalizeId(id) {
-//   console.log("🟢 normalizeId() called with:", id);
 
-//   if (!id) return null;
-
-//   if (typeof id === "string") {
-//     console.log("   ↳ returning plain string:", id.trim());
-//     return id.trim();
-//   }
-
-//   if (id._id) {
-//     console.log("   ↳ returning nested _id:", id._id);
-//     return String(id._id);
-//   }
-
-//   if (id.buffer) {
-//     const bytes = Object.values(id.buffer);
-//     const hex = bytes.map((b) => b.toString(16).padStart(2, "0")).join("");
-//     console.log("   ↳ returning buffer hex:", hex);
-//     return hex;
-//   }
-
-//   // Handle case where id is an object but we need to convert it to string
-//   if (typeof id === "object") {
-//     console.log("   ↳ converting object to string:", JSON.stringify(id));
-//     return JSON.stringify(id);
-//   }
-
-//   console.warn("   ⚠️ Could not normalize id:", id);
-//   return null;
-// }
 
 const ChatPage = () => {
-   const { id } = useParams();
-  const targetUserIdParam = normalizeId(id);
-  console.log("📌 useParams() -> params:", params);
-  console.log("📌 useParams() -> targetUserIdParam:", targetUserIdParam);
+  const params = useParams();
+ const targetUserIdParam = normalizeId(params.id);
+ console.log("📌 useParams():", params);
+ console.log("📌 targetUserIdParam (normalized):", targetUserIdParam);
 
   const navigate = useNavigate();
 
@@ -105,7 +74,7 @@ const ChatPage = () => {
         console.log("🚀 Initializing stream chat client...");
         const client = StreamChat.getInstance(STREAM_API_KEY);
 
-        const myId = normalizeId(authUser._id);
+        const myId = normalizeId(authUser?._id);
         const targetId = normalizeId(targetUserIdParam);
 
         console.log("👤 My ID:", myId);

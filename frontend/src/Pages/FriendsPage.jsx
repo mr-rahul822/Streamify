@@ -53,7 +53,7 @@ const FriendsPage = () => {
     if (outgoingFriendReqs && outgoingFriendReqs.length > 0) {
       outgoingFriendReqs.forEach((req) => {
         if (req.recipient && req.recipient._id) {
-          outgoingIds.add(req.recipient._id);
+          outgoingIds.add(normalizeId(req.recipient._id));
         }
       });
       setOutgoingRequestsIds(outgoingIds);
@@ -146,7 +146,7 @@ const FriendsPage = () => {
                     {req.status === "accepted" && (
                       <button
                         className="btn btn-primary w-full mt-3"
-                        onClick={() => navigate(`/chat/${String(req.recipient._id)}`)}
+                        onClick={() => navigate(`/chat/${normalizeId(req.recipient._id)}`)}
                       >
                         <MessageSquareIcon className="size-4 mr-2" />
                         Message

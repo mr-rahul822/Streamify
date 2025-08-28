@@ -21,16 +21,16 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ Serve uploads folder
+
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
-// ✅ API routes
+
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/chat", chatRoute);
 app.use("/api/communities", communityRoutes);
 
-// ✅ Only if frontend dist is bundled with backend
+
 if (process.env.NODE_ENV === "production") {
   const frontendPath = path.join(process.cwd(), "../frontend/dist");
   const indexPath = path.join(frontendPath, "index.html");

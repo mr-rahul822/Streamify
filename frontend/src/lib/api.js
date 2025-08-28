@@ -1,5 +1,6 @@
 import { axiosInstance } from "./axios";
 import { API } from "./axios";
+import { normalizeId } from "../utils/id";
 
 axiosInstance.withCredentials = true;
 
@@ -127,20 +128,7 @@ export const sendFriendRequest = async (userId) => {
     console.log("sendFriendRequest received userId:", userId);
     console.log("userId JSON:", JSON.stringify(userId));
 
-    let recipientId;
-
-    if (userId && typeof userId === "object" && userId._id) {
-      // Case 1: Mongoose user object
-      recipientId = String(userId._id);
-    } else if (typeof userId === "string") {
-      // Case 2: Already string
-      recipientId = userId.trim();
-    } else if (userId?.buffer) {
-      // Case 3: Raw buffer → convert manually (no Node Buffer)
-      const bytes = Object.values(userId.buffer);
-      recipientId = bytes.map((b) => b.toString(16).padStart(2, "0")).join("");
-    }
-
+    const recipientId = normalizeId(userId);
     if (!recipientId || recipientId === "[object Object]") {
       throw new Error("Recipient ID is missing or invalid in sendFriendRequest");
     }
