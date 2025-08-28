@@ -119,7 +119,7 @@ const App = () => {
             )
           }
         />
-        <Route
+        {/* <Route
           path="/chat"
           element={
             isAuthenticated && isOnborded ? (
@@ -128,7 +128,7 @@ const App = () => {
               <Navigate to={!isAuthenticated ? "/login" : "/onbording"} />
             )
           }
-        />
+        /> */}
        <Route
           path="/call/:id"
           element={

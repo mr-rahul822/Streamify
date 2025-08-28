@@ -31,6 +31,14 @@ export function normalizeId(x) {
       buf = Array.from(buf);
     }
 
+    // Plain object with numeric keys: {0: 104, 1: 152, ...}
+    if (!Array.isArray(buf) && typeof buf === "object") {
+      const values = Object.values(buf);
+      if (values.every((v) => typeof v === "number")) {
+        buf = values;
+      }
+    }
+
     if (Array.isArray(buf)) {
       const hex = buf
         .map((b) => Number(b).toString(16).padStart(2, "0"))

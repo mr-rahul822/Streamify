@@ -128,8 +128,34 @@ export const sendFriendRequest = async (userId) => {
     console.log("sendFriendRequest received userId:", userId);
     console.log("userId JSON:", JSON.stringify(userId));
 
-    const recipientId = normalizeId(userId);
+    let recipientId = normalizeId(userId);
+
+    // Fallback: attempt to derive from buffer-like shapes if normalization failed
     if (!recipientId || recipientId === "[object Object]") {
+      try {
+        let buf = userId?.buffer?.data ?? userId?.buffer ?? userId?.data;
+        if (buf) {
+          if (buf.type === "Buffer" && Array.isArray(buf.data)) buf = buf.data;
+          if (ArrayBuffer.isView(buf)) buf = Array.from(buf);
+          if (!Array.isArray(buf) && typeof buf === "object") {
+            const values = Object.values(buf);
+            if (values.every((v) => typeof v === "number")) buf = values;
+          }
+          if (Array.isArray(buf)) {
+            const hex = buf
+              .map((b) => Number(b).toString(16).padStart(2, "0"))
+              .join("")
+              .slice(0, 24);
+            if (hex) recipientId = hex;
+          }
+        }
+      } catch (e) {
+        console.error("fallback recipientId derivation failed:", e);
+      }
+    }
+
+    // Final validation: ensure 24-hex
+    if (!recipientId || !/^[a-f0-9]{24}$/i.test(String(recipientId))) {
       throw new Error("Recipient ID is missing or invalid in sendFriendRequest");
     }
 
